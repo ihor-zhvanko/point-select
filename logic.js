@@ -1,90 +1,54 @@
 var maxDist = Math.sqrt(21833 / MAX_POINT_COUNT) * 1000;
 
 function tryMarkers() {
-    var topPoint = findTopPoint(lvivOblPolygon.coords);
+  let firstPoint = lvivOblPolygon[0];
 
-    var pointCircle = new google.maps.Circle({
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.8,
-        strokeWeight: 1,
-        fillColor: '#FF0000',
-        fillOpacity: 0.35,
-        map: map,
-        center: {
-            lng: topPoint[0],
-            lat: topPoint[1]
-        },
-        radius: maxDist// in meters
-    });
+  for(let i = 0; i < lvivOblPolygon.length - 1; ++i) {
+    let circle = new Circle(Point.fromGeoPoint(lvivOblPolygon[i]), DEG_MAX_DISTANCE);
+    let line = new Line(Point.fromGeoPoint(lvivOblPolygon[i]), Point.fromGeoPoint(lvivOblPolygon[i+1]));
 
-    var nextPoint = topPoint;
-
-    for (let i = 0; i < 2; ++i) {
-        nextPoint = findFirstIntercept(nextPoint, lvivOblPolygon.coords).end;
-
-        // pointCircle = new google.maps.Circle({
-        //     strokeColor: '#FF0000',
-        //     strokeOpacity: 0.8,''']
-        //     strokeWeight: 1,
-        //     fillColor: '#FF0000',
-        //     fillOpacity: 0.35,
-        //     map: map,
-        //     center: {
-        //         lng: nextPoint[0],
-        //         lat: nextPoint[1]
-        //     },
-        //     radius: maxDist// in meters
-        // });
-        addSingleMarker(nextPoint[1], nextPoint[0]);
+    if(!Geometry.intersects(circle, line)) {
+      continue;
     }
 
-    var allDist = 0;
-    for (let i = 0; i < lvivOblPolygon.coords.length - 1; ++i) {
-        allDist += distance(lvivOblPolygon.coords[i], lvivOblPolygon.coords[i + 1]);
-    }
+    let intersections = Geometry.getIntersectPoint(circle, line);
+  }
 
-    var particle = Math.sqrt(lvivOblarea / MAX_POINT_COUNT);
-    pushLog("Total points: " + allDist / particle);
+  //let circle = new Circle(new Point(0, 0), 1);
+  //let line = new Line(new Point(-3, 0), new Point(3, 0));
+  //console.log("line length: ", line.length);
+
+  //Geometry.getIntersectPoint(circle, line);
 }
 
-function findTopPoint(points) {
-    let max = Number.MIN_SAFE_INTEGER;
-    let point;
+function intersects(center, radius, start, end) {
+    let isStartInside = distance(center, start) <= radius;
+    let isEndOutside = distance(center, end) > radius;
 
-    for (let i = 0; i < points.length; ++i) {
-        if (points[i][1] > max) {
-            max = points[i][1];
-            point = points[i];
-        }
-    }
+    let isStartOutside = distance(center, start) > radius;
+    let isEndInside = distance(center, end) <= radius;
 
-    return point;
-}
+    let isCenterOnLine = (center.lat - start.lat) / (end.lat - start.lat) == (center.lng - start.lng) / (end.lng - start.lng)
+    let intersectsFully = isEndOutside && isStartOutside && isCenterOnLine;
 
-function distance(p1, p2) {
-    return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
-}
-
-function intercepts(center, start, end) {
-    let isStartInside = distance(center, start) <= degMinDist;
-    let isEndOutside = distance(center, end) > degMinDist;
-
-    let isStartOutside = distance(center, start) > degMinDist;
-    let isEndInside = distance(center, end) <= degMinDist;
-
-    if ((isStartInside && isEndOutside) || (isStartOutside && isEndInside)) {
+    //only these three situations could be
+    if (
+      (isStartInside && isEndOutside) ||
+      (isStartOutside && isEndInside) ||
+      intersectsFully
+    ) {
         return true;
     }
 
     return false;
 }
 
-function findFirstIntercept(center, points) {
-    for (let i = 0; i < points.length - 1; ++i) {
+function findNextIntersect(center, points, j) {
+    for (let i = j; i < points.length - 1; ++i) {
         let start = points[i];
         let end = points[i + 1];
 
-        if (intercepts(center, start, end)) {
+        if (intercepts(center, DEG_MAX_DISTANCE, start, end)) {
             return {
                 start: start,
                 end: end
@@ -96,4 +60,7 @@ function findFirstIntercept(center, points) {
         start: undefined,
         end: undefined
     }
+}
+
+function getIntersectPoint(center, radius, start, end) {
 }

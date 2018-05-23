@@ -1,17 +1,41 @@
 var maxDist = Math.sqrt(21833 / MAX_POINT_COUNT) * 1000;
 
 function tryMarkers() {
-  let firstPoint = lvivOblPolygon[0];
+  let current = LVIV_POLYGON[0];
 
-  for(let i = 0; i < lvivOblPolygon.length - 1; ++i) {
-    let circle = new Circle(Point.fromGeoPoint(lvivOblPolygon[i]), DEG_MAX_DISTANCE);
-    let line = new Line(Point.fromGeoPoint(lvivOblPolygon[i]), Point.fromGeoPoint(lvivOblPolygon[i+1]));
+  for(let i = 0; i < LVIV_POLYGON.length - 1; ++i) {
+    let circle = new Circle(Point.fromGeoPoint(current), DEG_MAX_DISTANCE);
+    let line = new Line(Point.fromGeoPoint(LVIV_POLYGON[i]), Point.fromGeoPoint(LVIV_POLYGON[i+1]));
 
     if(!Geometry.intersects(circle, line)) {
       continue;
     }
 
     let intersections = Geometry.getIntersectPoint(circle, line);
+
+    let centerT = line.getParamenter(circle.center);
+
+    let params = [];
+    if(line.belongs(intersections[0])) {
+      params.push(line.getParamenter(intersections[0]));
+    }
+
+    if(line.belongs(intersections[1])) {
+      params.push(line.getParamenter(intersections[1]));
+    }
+
+    let maxParam = Math.max(...params);
+    let maxParamIndex = params.indexOf(maxParam);
+
+    if(maxParam < centerT) { // we dont need to go back
+      continue;
+    }
+
+    --i; // We need to go back, because line can be very long
+
+    current = Point.toGeoPoint(intersections[maxParamIndex]);
+    addSingleMarker(current.lat, current.lng);
+
   }
 
   //let circle = new Circle(new Point(0, 0), 1);

@@ -6,11 +6,11 @@ class Geometry {
    * @returns {Boolean}
    */
   static intersects(circle, line) {
-    let isStartInside = distance(circle.center, line.start) <= circle.radius;
-    let isEndOutside = distance(circle.center, line.end) > circle.radius;
+    let isStartInside = circle.center.distance(line.start) <= circle.radius;
+    let isEndOutside = circle.center.distance(line.end) > circle.radius;
 
-    let isStartOutside = distance(circle.center, start) > radius;
-    let isEndInside = distance(circle.center, end) <= radius;
+    let isStartOutside = circle.center.distance(line.start) > circle.radius;
+    let isEndInside = circle.center.distance(line.end) <= circle.radius;
 
     let isCenterOnLine = line.belongs(circle.center);
     let intersectsFully = isEndOutside && isStartOutside && isCenterOnLine;
@@ -31,7 +31,7 @@ class Geometry {
    * 
    * @param {Circle} circle 
    * @param {Line} line
-   * @returns Point
+   * @returns Array<Point>
    */
   static getIntersectPoint(circle, line) {
     let r2 = circle.radius * circle.radius;

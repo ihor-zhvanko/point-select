@@ -1,90 +1,71 @@
 var maxDist = Math.sqrt(21833 / MAX_POINT_COUNT) * 1000;
 
+function random(from, to) {
+  return Math.random() * (to - from) + from;
+}
+
+let points = [];
+let markers = [];
+let pointWasMoved = true;
+let iteration = 0;
+let boundingPolygon = LVIV_POLYGON.map(x => Point.fromGeoPoint(x));
+for (let i = 0; i < LVIV_POLYGON.length; ++i) {
+  points.push(Point.fromGeoPoint({ lat: 49.83826, lng: 24.02324 }));
+}
+
+function startBruteforce() {
+  let timer = setInterval(function () {
+    ++iteration;
+    setLog(iteration);
+    if (pointWasMoved) {
+      tryMarkers();
+    } else {
+      clearInterval(timer);
+      pushLog('Stopped bruteforcing');
+    }
+  }, 200)
+}
+
 function tryMarkers() {
-  let current = LVIV_POLYGON[0];
+  markers.map(x => x.setMap(null));
+  pointWasMoved = false;
+  for (let i = 0; i < points.length; ++i) {
+    for (let j = 0; j < points.length; ++j) {
+      if (i == j) continue;
 
-  for(let i = 0; i < LVIV_POLYGON.length - 1; ++i) {
-    let circle = new Circle(Point.fromGeoPoint(current), DEG_MAX_DISTANCE);
-    let line = new Line(Point.fromGeoPoint(LVIV_POLYGON[i]), Point.fromGeoPoint(LVIV_POLYGON[i+1]));
+      if (points[i].distance(points[j]) <= DEG_MAX_DISTANCE) {
+        pointWasMoved = true;
+        let cycle = 0;
+        let newPoint_j;
+        do {
+          ++cycle;
+          let vector = calcNormalizedVector(points[i], points[j], true);
 
-    if(!Geometry.intersects(circle, line)) {
-      continue;
+          newPoint_j = vector.multiply(DEG_MAX_DISTANCE).add(points[i]);
+        } while (!Geometry.isPointInside(boundingPolygon, newPoint_j));
+
+        points[j] = newPoint_j;
+      }
     }
-
-    let intersections = Geometry.getIntersectPoint(circle, line);
-
-    let centerT = line.getParamenter(circle.center);
-
-    let params = [];
-    if(line.belongs(intersections[0])) {
-      params.push(line.getParamenter(intersections[0]));
-    }
-
-    if(line.belongs(intersections[1])) {
-      params.push(line.getParamenter(intersections[1]));
-    }
-
-    let maxParam = Math.max(...params);
-    let maxParamIndex = params.indexOf(maxParam);
-
-    if(maxParam < centerT) { // we dont need to go back
-      continue;
-    }
-
-    --i; // We need to go back, because line can be very long
-
-    current = Point.toGeoPoint(intersections[maxParamIndex]);
-    addSingleMarker(current.lat, current.lng);
-
   }
 
-  //let circle = new Circle(new Point(0, 0), 1);
-  //let line = new Line(new Point(-3, 0), new Point(3, 0));
-  //console.log("line length: ", line.length);
 
-  //Geometry.getIntersectPoint(circle, line);
+  // for (let i = 0; i < LVIV_POLYGON.length; ++i) {
+  //   let p = Point.toGeoPoint(points[i]);
+  //   let marker = addSingleMarker(p.lat, p.lng);
+  //   markers.push(marker);
+  // }
 }
 
-function intersects(center, radius, start, end) {
-    let isStartInside = distance(center, start) <= radius;
-    let isEndOutside = distance(center, end) > radius;
+function calcNormalizedVector(point1, point2, randomize) {
+  let vector;
+  if (randomize || point1.x == point2.x && point1.y == point2.y) {
+    vector = new Point(random(-1, 1), random(-1, 1));
+  } else {
+    vector = new Point(point2.x - point1.x, point2.y - point1.y);
+  }
 
-    let isStartOutside = distance(center, start) > radius;
-    let isEndInside = distance(center, end) <= radius;
-
-    let isCenterOnLine = (center.lat - start.lat) / (end.lat - start.lat) == (center.lng - start.lng) / (end.lng - start.lng)
-    let intersectsFully = isEndOutside && isStartOutside && isCenterOnLine;
-
-    //only these three situations could be
-    if (
-      (isStartInside && isEndOutside) ||
-      (isStartOutside && isEndInside) ||
-      intersectsFully
-    ) {
-        return true;
-    }
-
-    return false;
-}
-
-function findNextIntersect(center, points, j) {
-    for (let i = j; i < points.length - 1; ++i) {
-        let start = points[i];
-        let end = points[i + 1];
-
-        if (intercepts(center, DEG_MAX_DISTANCE, start, end)) {
-            return {
-                start: start,
-                end: end
-            }
-        }
-    }
-
-    return {
-        start: undefined,
-        end: undefined
-    }
-}
-
-function getIntersectPoint(center, radius, start, end) {
+  vector.x = vector.x / vector.distance();
+  vector.y = vector.y / vector.distance();
+  return vector;
 }

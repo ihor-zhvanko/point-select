@@ -1,7 +1,7 @@
+'use strict'
+
 var map;
 var MAX_POINT_COUNT = 33;
-var DEG_LVIV_AREA = 2.735747130533;
-var DEG_MAX_DISTANCE = 0.28;//Math.sqrt(DEG_LVIV_AREA / MAX_POINT_COUNT);
 var LVIV_POLYGON = [
     [22.644480999999999, 49.524173999999995],
     [23.280083999999999, 50.100544999999997],
@@ -55,7 +55,7 @@ var LVIV_POLYGON = [
     [22.714887999999998, 49.226489999999998],
     [22.746810999999997, 49.359890999999998],
     [22.644480999999999, 49.524173999999995]
-].map(x => { return { lng: x[0], lat: x[1] } });
+].map(function (x) { return { lng: x[0], lat: x[1] }; });
 
 function initMap() {
     //lviv
@@ -80,20 +80,30 @@ function addLvivPolygon() {
     gPolygon.setMap(map);
 }
 
-function addSingleMarker(lat, lng) {
+function addSingleMarker(geoPoint) {
     var markerImage = new google.maps.MarkerImage('target-icon.svg',
         new google.maps.Size(20, 20),
         new google.maps.Point(0, 0),
         new google.maps.Point(10, 10));
 
     return new google.maps.Marker({
-        position: {
-            lat: lat,
-            lng: lng
-        },
+        draggable: true,
+        position: geoPoint,
         icon: markerImage,
         map: map
     });
+}
+
+function addPolyline(geoPoints) {
+  var polyline = new google.maps.Polyline({
+      path: geoPoints,
+      geodesic: true,
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 2
+    });
+  
+  polyline.setMap(map);
 }
 
 function pushLog(msg) {
@@ -105,3 +115,30 @@ function setLog(msg) {
     var logElem = document.getElementById('myLog');
     logElem.innerHTML = msg + "<br/><hr/>";
 }
+
+
+
+function getMyPoints() {
+  
+  document.getElementsByClassName('shadow')[0].classList.remove('hide'); 
+}
+
+
+function closeModal() {
+  document.getElementsByClassName('shadow')[0].classList.add('hide');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

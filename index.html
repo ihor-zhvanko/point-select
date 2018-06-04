@@ -2,35 +2,45 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Point selector</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Point selector</title>
 
-    <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <div id="myMap"></div>
+  <div id="myMap"></div>
+  <div class="button-bar">
+    <button type="button" onclick="tryMarkers()">Try markers</button>
+    <button type="button" onclick="getMyPoints()">Get Points!</button>
+  </div>
 
-    <div class="button-bar">
-        <button type="button" onclick="startBruteforce()">Try markers</button>
+  <div class="shadow hide" onclick="closeModal()">
+   </div>
+    <div class="points-modal">
+      <h2>Your Points</h2>
+      <p class="points"></p>
     </div>
+  
 
-    <div id="myLog">
+  <div id="myLog">
 
-    </div>
+  </div>
 
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap">
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap"> </script>
 
-    <script src="point.js"></script>
-    <script src="line.js"></script>
-    <script src="circle.js"></script>
-    <script src="geometry.js"></script>
-    <script src="main.js"></script>
-    <script src="logic.js"></script>
+  </script>
+
+  <script src="point.js"></script>
+  <script src="line.js"></script>
+  <script src="circle.js"></script>
+  <script src="geometry.js"></script>
+  <script src="main.js"></script>
+  <script src="logic.js"></script>
 </body>
 
 </html>

@@ -1,71 +1,100 @@
-var maxDist = Math.sqrt(21833 / MAX_POINT_COUNT) * 1000;
-
-function random(from, to) {
-  return Math.random() * (to - from) + from;
-}
-
-let points = [];
-let markers = [];
-let pointWasMoved = true;
-let iteration = 0;
-let boundingPolygon = LVIV_POLYGON.map(x => Point.fromGeoPoint(x));
-for (let i = 0; i < LVIV_POLYGON.length; ++i) {
-  points.push(Point.fromGeoPoint({ lat: 49.83826, lng: 24.02324 }));
-}
-
-function startBruteforce() {
-  let timer = setInterval(function () {
-    ++iteration;
-    setLog(iteration);
-    if (pointWasMoved) {
-      tryMarkers();
-    } else {
-      clearInterval(timer);
-      pushLog('Stopped bruteforcing');
-    }
-  }, 200)
-}
-
 function tryMarkers() {
-  markers.map(x => x.setMap(null));
-  pointWasMoved = false;
-  for (let i = 0; i < points.length; ++i) {
-    for (let j = 0; j < points.length; ++j) {
-      if (i == j) continue;
+  var STEPS_X = 9,
+      STEPS_Y = 7,
+      
+      resultPoints = [],
+      
+      points = LVIV_POLYGON.map(x => Point.fromGeoPoint(x)),
 
-      if (points[i].distance(points[j]) <= DEG_MAX_DISTANCE) {
-        pointWasMoved = true;
-        let cycle = 0;
-        let newPoint_j;
-        do {
-          ++cycle;
-          let vector = calcNormalizedVector(points[i], points[j], true);
-
-          newPoint_j = vector.multiply(DEG_MAX_DISTANCE).add(points[i]);
-        } while (!Geometry.isPointInside(boundingPolygon, newPoint_j));
-
-        points[j] = newPoint_j;
+      minX = Math.min(...points.map(x => x.x)),
+      minXPoint = points.find(x => x.x == minX),
+      geoMinXPoint = Point.toGeoPoint(minXPoint),
+      
+      maxX = Math.max(...points.map(x => x.x)),
+      maxXPoint = points.find(x => x.x == maxX),
+      geoMaxXPoint = Point.toGeoPoint(maxXPoint),
+      
+      minY = Math.min(...points.map(x => x.y)),
+      minYPoint = points.find(x => x.y == minY),
+      geoMinYPoint = Point.toGeoPoint(minYPoint),
+  
+      maxY = Math.max(...points.map(x => x.y)),
+      maxYPoint = points.find(x => x.y == maxY),
+      geoMaxYPoint = Point.toGeoPoint(maxYPoint),
+      deltaX = (maxXPoint.x - minXPoint.x) / STEPS_X,
+      deltaY = (maxYPoint.y - minYPoint.y) / STEPS_Y;
+  
+  addSingleMarker(geoMinXPoint);
+  addSingleMarker(geoMaxXPoint);
+  addSingleMarker(geoMinYPoint);
+  addSingleMarker(geoMaxYPoint);
+  
+  makeYGrid(STEPS_X, minXPoint, maxXPoint, 2);
+  makeXGrid(STEPS_Y, minYPoint, maxYPoint, 2);
+  
+  var pointsInsideCount = 0;
+  for(let i = 0; i <= STEPS_X; ++i) {
+    for(let j = 0; j <= STEPS_Y; ++j) {
+      var point = new Point(minXPoint.x + i * deltaX, minYPoint.y + j*deltaY);
+      if(Geometry.isPointInside(points, point)) {
+        pointsInsideCount++;
+        addSingleMarker(Point.toGeoPoint(point));
+        resultPoints.push(Point.toGeoPoint(point));
       }
     }
   }
-
-
-  // for (let i = 0; i < LVIV_POLYGON.length; ++i) {
-  //   let p = Point.toGeoPoint(points[i]);
-  //   let marker = addSingleMarker(p.lat, p.lng);
-  //   markers.push(marker);
-  // }
+  
+  pushLog('Points count: ' + pointsInsideCount);
+  var str = resultPoints
+    .concat([geoMinXPoint, geoMaxXPoint, geoMinYPoint, geoMaxYPoint])
+    .map(x => x.lat + ',' + x.lng)
+    .join('\n');
+  
+  document.getElementsByClassName('points')[0].innerHTML = str;
 }
 
-function calcNormalizedVector(point1, point2, randomize) {
-  let vector;
-  if (randomize || point1.x == point2.x && point1.y == point2.y) {
-    vector = new Point(random(-1, 1), random(-1, 1));
-  } else {
-    vector = new Point(point2.x - point1.x, point2.y - point1.y);
+
+function makeYGrid(steps, minXPoint, maxXPoint, height) {
+  height = 2;
+  var delta = (maxXPoint.x - minXPoint.x) / steps,
+      from, to;
+  
+  for(var i = 1; i < steps; ++i) {
+    from = new Point(maxXPoint.x - i * delta, maxXPoint.y - height);
+    to   = new Point(maxXPoint.x - i * delta, maxXPoint.y + height);
+    
+    addPolyline([Point.toGeoPoint(from), Point.toGeoPoint(to)]);
   }
-
-  vector.x = vector.x / vector.distance();
-  vector.y = vector.y / vector.distance();
-  return vector;
 }
+
+function makeXGrid(steps, minYPoint, maxYPoint, height) {
+  height = 2;
+  var delta = (maxYPoint.y - minYPoint.y) / steps,
+      from, to;
+  
+  for(var i = 1; i < steps; ++i) {
+    from = new Point(maxYPoint.x + height, maxYPoint.y - i * delta);
+    to   = new Point(maxYPoint.x - height, maxYPoint.y - i * delta);
+    
+    addPolyline([Point.toGeoPoint(from), Point.toGeoPoint(to)]);
+  }
+}
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      

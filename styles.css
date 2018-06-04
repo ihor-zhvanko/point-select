@@ -1,6 +1,7 @@
 #myMap {
-    width: 100%;
-    height: 900px;
+  display: inline-block;
+  width: 100%;
+  height: 820px;
 }
 
 button {
@@ -10,6 +11,55 @@ border-radius: 8px;
 background-color: aliceblue;
 }
 
+.hide {
+  display: none;
+}
+
 .button-bar {
     padding: 50px 10px;
+}
+
+.points-modal {
+  background-color: aliceblue;
+  width: 400px;
+  height: 300px;
+  position: absolute;
+  top: calc(50% - 150px);
+  left: calc(50% - 200px);
+  z-index: 9999;
+  
+}
+
+.points-modal h2 {
+  text-align: center;
+  height: calc(20% - 2rem);
+  margin: 1rem;
+}
+
+.points-modal p {
+  margin: 1rem;
+  height: calc(80% - 1rem);
+  border: 1px solid lightblue;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background-color: azure;
+  overflow-y: scroll;
+}
+
+.shadow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9997;
+}
+
+.shadow.hide+.points-modal {
+  display: none;
+}
+
+.shadow+.points-modal {
+  display: block;
 }

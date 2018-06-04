@@ -38,6 +38,7 @@ background-color: aliceblue;
 
 .points-modal p {
   margin: 1rem;
+  padding: 1rem;
   height: calc(80% - 1rem);
   border: 1px solid lightblue;
   border-radius: 10px;
